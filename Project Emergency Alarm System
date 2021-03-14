@@ -1,0 +1,73 @@
+#include <LiquidCrystal.h> //Load Liquid Crystal Library
+LiquidCrystal LCD(11,10,9,2,3,4,5);  //Create LCD
+long duration;			//Declare the duration
+int distance;			//Declare the distance
+const int TrigPin = 13;	//Trigger Output Pin
+const int EchoPin = 12;	//Echo Input Pin
+const int Buzzer = 8;	//Piezo Speaker Output Pin
+const int ledPin = 6;	//LED Ouput Pin
+float cm;
+
+
+void setup()
+{
+  Serial.begin(9600);		//Default serial begin
+  pinMode(TrigPin, OUTPUT);	//Set Trigger as output
+  pinMode(EchoPin, INPUT);	//Set Echo as input
+  pinMode(ledPin, OUTPUT);	//Set LED as output
+  pinMode(Buzzer,OUTPUT);	//Set Buzzer as output
+  LCD.begin(16,2); 			//Tell Arduino to start your 16 column 2 row LCD
+  LCD.setCursor(0,0);  		//Set LCD cursor to upper left corner, column 0, row 0
+  LCD.print("Distance:");  //Print Message on First Row
+}
+void loop()
+{
+  digitalWrite(TrigPin, LOW);		//
+  delayMicroseconds(2);				//
+  digitalWrite(TrigPin, HIGH);		//
+  delayMicroseconds(10);			//
+  digitalWrite(TrigPin, LOW);		//
+  duration = pulseIn(EchoPin, HIGH);//
+  distance = (duration/2) / 29.1; 	//
+  Serial.print("Distance: ");  		//Display in serial monitor
+  Serial.print(distance);			//Display the distance
+  Serial.print(" CM");				//Display the unit
+  Serial.println(" ");				//Make some space in display
+  LCD.setCursor(0,1); 	//Set cursor to first column of second row
+  LCD.print("   "); 	//Print blanks to clear the row
+  LCD.setCursor(0,1);   //Set Cursor again to first column of second row
+  LCD.print(distance); 	//Print measured distance
+  LCD.print(" cm");  	//Print the unit
+  delay(1000); 			//Pause 1 second
+  
+  digitalWrite(TrigPin, LOW);       
+  delayMicroseconds(2);
+  digitalWrite(TrigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TrigPin, LOW);
+  cm = pulseIn(EchoPin, HIGH)/ 58.0;  //The echo time is converted into cm
+  cm = (int(cm * 100.0)) / 100.0;     //Keep two decimal places
+  Serial.println();
+    
+
+  if(cm<15)		//If distance below than 15 cm
+  {
+      
+      digitalWrite(Buzzer,HIGH);				//Buzzer beeping
+      delay(200);								//Delay 2 miliseconds
+      Serial.print("In safe condition.   ");	//Display in serial monitor
+      digitalWrite(ledPin,LOW);					//LED off
+
+  }
+    else		//If distance exceed 15 cm
+  {
+      delay(1000);								//Pause for 1 second
+      digitalWrite(ledPin,HIGH);				//LED on
+      digitalWrite(Buzzer,LOW);					//Buzzer not beep
+      delay(200);								//Delay 2 miliseconds
+      Serial.print("Someone approaching!   ");	//Display in serial monitor
+
+  }
+  delay(200);		//Display 2 miliseconds
+  
+}
